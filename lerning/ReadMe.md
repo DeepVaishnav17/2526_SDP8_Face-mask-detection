@@ -1,5 +1,11 @@
 # Lab 1
 
+## Date: December 8, 2025
+
+### Today's Task
+
+Exploration, understanding, and documentation of the chosen Face Mask Detection Algorithm and its underlying mathematical principles for production deployment.
+
 # By Mrudul
 
 # Category 1: Two-Stage Detectors (The "Beginner Friendly" Way)
@@ -58,13 +64,7 @@ Option B (One-Stage - YOLO)
 
 # By Deep
 
-# 🧠 Algorithm Deep Dive & Technical Learning Log
-
-## 📅 Date: December 8, 2025
-
-### 🎯 Today's Task
-
-Exploration, understanding, and documentation of the chosen Face Mask Detection Algorithm and its underlying mathematical principles for production deployment.
+# Algorithm Deep Dive & Technical Learning Log
 
 ---
 
