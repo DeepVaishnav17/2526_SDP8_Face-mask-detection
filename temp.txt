@@ -1,0 +1,10 @@
+ Lab-01
+ task-1: explore different algorithms which can directly detect the face mask
+ and apply all of them 
+
+
+
+
+
+// ask to
+ things: don't focus on architecture from scratch directly focus on implemenattaion 
