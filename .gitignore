@@ -1,0 +1,5 @@
+dataset/
+dataset/archive/annotations/
+dataset/archive/images/
+
+__pycache__/
