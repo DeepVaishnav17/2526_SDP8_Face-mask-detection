@@ -1,4 +1,24 @@
-# train_model.py
+# # train_model.py
+# import tensorflow as tf
+
+# from tensorflow.keras.preprocessing.image import ImageDataGenerator
+# from tensorflow.keras.applications import MobileNetV2
+# from tensorflow.keras.layers import AveragePooling2D, Dropout, Flatten, Dense, Input
+# from tensorflow.keras.models import Model
+# from tensorflow.keras.optimizers import Adam
+# from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+# from tensorflow.keras.utils import to_categorical
+# from sklearn.preprocessing import LabelBinarizer
+# from sklearn.model_selection import train_test_split
+# import matplotlib.pyplot as plt
+# import numpy as np
+# import os
+# import config_d as config_d # Import your config settings
+import tensorflow as tf
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import AveragePooling2D, Dropout, Flatten, Dense, Input
@@ -6,12 +26,12 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.utils import to_categorical
+
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-import lerning.config_d as config_d # Import your config settings
+
+import config_d
+
 
 print("[INFO] loading images...")
 
