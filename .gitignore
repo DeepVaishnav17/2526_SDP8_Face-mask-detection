@@ -1,5 +1,8 @@
 dataset/
+sample_data/
 dataset/archive/annotations/
 dataset/archive/images/
-
+data_stats.png
+keras_model.h5
+labels.txt
 __pycache__/
