@@ -3,3 +3,6 @@ dataset/archive/annotations/
 dataset/archive/images/
 
 __pycache__/
+venv/
+venv/Lib
+venv/Scripts
