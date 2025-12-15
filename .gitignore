@@ -6,3 +6,5 @@ __pycache__/
 venv/
 venv/Lib
 venv/Scripts
+lerning/Lab1/img.webp
+lerning/Lab1/mask_detector.h5
