@@ -7,11 +7,11 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import config_d  # Import your config for consistent paths
 
-# --- 1. SETUP & LOAD MODEL ---
+
 print("[INFO] Loading face detector (MediaPipe)...")
-mp_face_detection = mp.solutions.face_detection
+mp_face_detection = mp.solutions.face_detection 
 mp_drawing = mp.solutions.drawing_utils
-face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.5)
+face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.5) # detect id confidence >0.5
 
 print(f"[INFO] Loading trained model from {config_d.MODEL_PATH}...")
 try:
@@ -23,7 +23,7 @@ except Exception as e:
 
 # --- 2. START CAMERA ---
 print("[INFO] Starting webcam...")
-cap = cv2.VideoCapture(0) # Try 0. If it fails, try 1.
+cap = cv2.VideoCapture(0) # open camera
 
 if not cap.isOpened():
     print("[ERROR] Could not access the webcam.")

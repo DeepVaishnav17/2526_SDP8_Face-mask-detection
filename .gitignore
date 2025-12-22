@@ -8,3 +8,6 @@ venv/Lib
 venv/Scripts
 lerning/Lab1/img.webp
 lerning/Lab1/mask_detector.h5
+mask-frontend-react/
+ai-detector-python/
+proxy-backend-spring/demo/

@@ -4,7 +4,7 @@ import cv2
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 MODEL_PATH = "mask_detector.h5"
-IMAGE_PATH = "img.webp"
+IMAGE_PATH = "IMG1.jpg"
 
 model = tf.keras.models.load_model(MODEL_PATH)
 
@@ -13,7 +13,6 @@ img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 img = cv2.resize(img, (224, 224))
 img = img.astype("float32")
 
-# 🔴 IMPORTANT FIX
 img = preprocess_input(img)
 
 img = np.expand_dims(img, axis=0)
