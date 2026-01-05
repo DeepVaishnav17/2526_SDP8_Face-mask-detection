@@ -96,3 +96,5 @@ Explored the functions and mathematics governing the training loop within `train
 ### 3. Conclusion
 
 The chosen architecture and training methodology provide a strong balance between high performance (due to Transfer Learning) and low latency (due to MobileNetV2's efficient design), aligning with the requirements for a production-grade detection system.
+
+

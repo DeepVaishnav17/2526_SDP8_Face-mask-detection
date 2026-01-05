@@ -4,8 +4,13 @@ import xml.etree.ElementTree as ET
 
 # --- PATHS ---
 base_dir = os.getcwd() # Get current working directory
-images_path = os.path.join(base_dir, "dataset", "archive", "images")
-xmls_path = os.path.join(base_dir, "dataset", "archive", "annotations")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))
+
+images_path = os.path.join(  ROOT_DIR, "dataset", "archive", "images")
+xmls_path = os.path.join(ROOT_DIR, "dataset", "archive", "annotations")
 
 output_mask_path = os.path.join(base_dir, "dataset", "with_mask")
 output_no_mask_path = os.path.join(base_dir, "dataset", "without_mask")
