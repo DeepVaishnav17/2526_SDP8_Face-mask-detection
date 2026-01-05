@@ -12,3 +12,7 @@ mask-frontend-react/
 ai-detector-python/
 proxy-backend-spring/demo/
 Project-main/processed_dataset/
+Project-main/audit_samples/
+Project-main/accuracy_audit/
+Project-main/archive.zip
+Project-main/mask_violations.csv	
