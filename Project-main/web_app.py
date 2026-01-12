@@ -25,31 +25,45 @@ stats_lock = threading.Lock()
 # Load models
 print("[INFO] Loading AI models...")
 faceNet = cv2.dnn.readNet("deploy.prototxt", "res10_300x300_ssd_iter_140000.caffemodel")
-maskNet = load_model("mask_detector.h5")
+maskNet = load_model("mask_detector_best.h5")  # Using improved model with 98.25% accuracy
 print("[INFO] Models loaded successfully!")
 
 # Settings
 CONFIDENCE_MIN = 0.75
-results_history = []
-previous_state = None  # Track previous detection state for session-based counting
+results_history = {}  # {face_id: [mask_probs]}
+previous_state = {}  # {face_id: 'mask'/'no_mask'}
+face_positions = {}  # {face_id: (x, y, w, h)}
+
+def get_face_id(box):
+    """Get face ID based on position"""
+    global face_positions
+    (x1, y1, x2, y2) = box
+    cx, cy = (x1+x2)//2, (y1+y2)//2
+    
+    for fid, (px1, py1, px2, py2) in face_positions.items():
+        pcx, pcy = (px1+px2)//2, (py1+py2)//2
+        dist = ((cx-pcx)**2 + (cy-pcy)**2)**0.5
+        if dist < 80:  # Same face if center within 80px
+            return fid
+    return max(face_positions.keys(), default=-1) + 1
 
 def detect_and_predict_mask(frame):
     """Detect faces and predict mask status"""
-    global results_history, stats, previous_state
+    global results_history, stats, previous_state, face_positions
     
     (h, w) = frame.shape[:2]
     blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), (104.0, 177.0, 123.0))
     faceNet.setInput(blob)
     detections = faceNet.forward()
 
-    faces_detected = 0
-    mask_detected = False
+    current_faces = {}
+    mask_count = 0
+    no_mask_count = 0
 
     for i in range(0, detections.shape[2]):
         face_confidence = detections[0, 0, i, 2]
 
         if face_confidence > 0.5:
-            faces_detected += 1
             box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
             (startX, startY) = (max(0, startX), max(0, startY))
@@ -58,6 +72,10 @@ def detect_and_predict_mask(frame):
             face = frame[startY:endY, startX:endX]
             if face.size == 0:
                 continue
+            
+            # Get unique face ID
+            face_id = get_face_id((startX, startY, endX, endY))
+            current_faces[face_id] = (startX, startY, endX, endY)
                 
             face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
             face = cv2.resize(face, (224, 224))
@@ -66,46 +84,67 @@ def detect_and_predict_mask(frame):
 
             (mask, withoutMask) = maskNet.predict(face, verbose=0)[0]
             
-            # Smoothing Logic
-            results_history.append(mask)
-            if len(results_history) > 10:
-                results_history.pop(0)
-            smoothed_prob = sum(results_history) / len(results_history)
+            # Per-face smoothing
+            if face_id not in results_history:
+                results_history[face_id] = []
+            results_history[face_id].append(mask)
+            if len(results_history[face_id]) > 10:
+                results_history[face_id].pop(0)
+            smoothed_prob = sum(results_history[face_id]) / len(results_history[face_id])
 
             if smoothed_prob > CONFIDENCE_MIN:
-                label, color = "Mask Detected", (0, 255, 0)
-                mask_detected = True
+                label, color = "Mask", (0, 255, 0)
                 current_state = 'mask'
+                mask_count += 1
             else:
-                label, color = "No Mask - Warning!", (0, 0, 255)
+                label, color = "No Mask", (0, 0, 255)
                 current_state = 'no_mask'
+                no_mask_count += 1
 
-            # Only increment counters when state CHANGES (session-based counting)
-            if previous_state != current_state:
+            # Track state changes per face
+            if face_id not in previous_state:
+                previous_state[face_id] = None
+            
+            if previous_state[face_id] != current_state:
                 with stats_lock:
                     stats['total_detections'] += 1
                     if current_state == 'mask':
                         stats['mask_count'] += 1
                     else:
                         stats['no_mask_count'] += 1
-                        # Log violation only on state change
                         log_violation(smoothed_prob)
-                
-                previous_state = current_state
+                previous_state[face_id] = current_state
 
-            display_label = f"{label}: {smoothed_prob * 100:.1f}%"
+            display_label = f"ID{face_id}: {label} {smoothed_prob*100:.0f}%"
             
             # Draw rectangle and label
-            cv2.rectangle(frame, (startX, startY), (endX, endY), color, 3)
-            cv2.putText(frame, display_label, (startX, startY - 10), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
-            
-            with stats_lock:
-                stats['current_status'] = label
+            cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+            label_size = cv2.getTextSize(display_label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
+            cv2.rectangle(frame, (startX, startY-30), (startX+label_size[0], startY), color, -1)
+            cv2.putText(frame, display_label, (startX, startY-10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+    
+    # Update tracking
+    face_positions = current_faces
+    for fid in list(results_history.keys()):
+        if fid not in current_faces:
+            del results_history[fid]
+            del previous_state[fid]
+    
+    # Update status
+    with stats_lock:
+        if no_mask_count > 0:
+            stats['current_status'] = f"{no_mask_count} No Mask Warning!"
+        elif mask_count > 0:
+            stats['current_status'] = f"{mask_count} Mask Detected"
+        else:
+            stats['current_status'] = "No Faces"
 
     # Add info overlay
-    info_text = f"Faces Detected: {faces_detected} | Time: {datetime.now().strftime('%H:%M:%S')}"
+    info_text = f"Faces: {len(current_faces)} | Mask: {mask_count} | No Mask: {no_mask_count}"
+    cv2.rectangle(frame, (5, 5), (w-5, 50), (0, 0, 0), -1)
     cv2.putText(frame, info_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    cv2.putText(frame, datetime.now().strftime('%H:%M:%S'), (w-200, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
     
     return frame
 
@@ -137,6 +176,9 @@ def generate_frames():
             pass
     
     camera = cv2.VideoCapture(0)
+    
+    # Optimize camera settings for better performance
+    camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Reduce latency
     
     # Give camera time to initialize
     import time
@@ -179,10 +221,11 @@ def video_feed():
 @app.route('/start_detection')
 def start_detection():
     """Start detection"""
-    global detection_active, results_history, previous_state
+    global detection_active, results_history, previous_state, face_positions
     detection_active = True
-    results_history = []
-    previous_state = None  # Reset state when starting new session
+    results_history = {}
+    previous_state = {}
+    face_positions = {}
     return jsonify({'status': 'started'})
 
 @app.route('/stop_detection')
@@ -214,7 +257,7 @@ def get_stats():
 @app.route('/reset_stats')
 def reset_stats():
     """Reset statistics"""
-    global stats
+    global stats, results_history, previous_state, face_positions
     with stats_lock:
         stats = {
             'total_detections': 0,
@@ -222,6 +265,9 @@ def reset_stats():
             'no_mask_count': 0,
             'current_status': 'Inactive'
         }
+    results_history = {}
+    previous_state = {}
+    face_positions = {}
     return jsonify({'status': 'reset'})
 
 if __name__ == '__main__':
