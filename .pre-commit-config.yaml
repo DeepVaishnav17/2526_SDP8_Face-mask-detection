@@ -1,0 +1,3 @@
+# This will automatically format your code (fix spacing, imports) every time youtry to commit.
+# If the code is messy, the commit will fail.
+

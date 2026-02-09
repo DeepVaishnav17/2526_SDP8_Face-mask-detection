@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Entry Monitoring System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .video-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #videoFeed {
+            width: 100%;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(235, 51, 73, 0.4);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stats-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .stats-panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+
+        .stat-item:hover {
+            transform: translateX(5px);
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.5em;
+            color: #667eea;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status.active {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .status.inactive {
+            background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
+            color: white;
+        }
+
+        .entries-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .entries-panel h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 10px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .entry-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 5px solid;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+
+        .entry-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .entry-item.mask {
+            border-left-color: #38ef7d;
+            background: linear-gradient(135deg, #f5fff5 0%, #e8f5e9 100%);
+        }
+
+        .entry-item.no-mask {
+            border-left-color: #f45c43;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .entry-id {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .entry-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .entry-status {
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .entry-status.detected {
+            background: #38ef7d;
+            color: white;
+        }
+
+        .entry-status.not-detected {
+            background: #f45c43;
+            color: white;
+        }
+
+        .entry-snapshot {
+            margin-top: 10px;
+            max-width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .entry-snapshot:hover {
+            transform: scale(1.05);
+        }
+
+        .no-entries {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        /* Scrollbar styling */
+        .entries-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .entries-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .entries-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .alert-banner {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 10px 30px rgba(235, 51, 73, 0.5);
+            z-index: 1000;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .alert-banner.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="alert-banner" id="alertBanner">
+        ⚠️ NO MASK DETECTED - ENTRY LOGGED!
+    </div>
+
+    <div class="header">
+        <h1>🏢 Gate Entry Monitoring System</h1>
+        <p>Automated Face Mask Detection & Entry Logging</p>
+    </div>
+
+    <div class="container">
+        <div class="video-section">
+            <div class="video-container">
+                <img id="videoFeed" src="" alt="Camera Feed">
+            </div>
+            <div class="controls">
+                <button class="btn btn-start" id="startBtn" onclick="startDetection()">
+                    ▶️ Start Monitoring
+                </button>
+                <button class="btn btn-stop" id="stopBtn" onclick="stopDetection()" disabled>
+                    ⏹️ Stop Monitoring
+                </button>
+                <button class="btn btn-reset" onclick="resetStats()">
+                    🔄 Reset Stats
+                </button>
+                <button class="btn btn-download" onclick="downloadLog()">
+                    📥 Download Log
+                </button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="stats-panel">
+                <div class="status inactive" id="statusDisplay">
+                    System Inactive
+                </div>
+                <h2>📊 Entry Statistics</h2>
+                <div class="stat-item">
+                    <span class="stat-label">Total Entries</span>
+                    <span class="stat-value" id="totalEntries">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">✅ With Mask</span>
+                    <span class="stat-value" id="maskEntries" style="color: #38ef7d;">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">❌ Without Mask</span>
+                    <span class="stat-value" id="noMaskEntries" style="color: #f45c43;">0</span>
+                </div>
+            </div>
+
+            <div class="entries-panel">
+                <h2>📋 Recent Entries</h2>
+                <div id="entriesList">
+                    <div class="no-entries">No entries recorded yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let updateInterval;
+        let lastNoMaskTime = 0;
+
+        function startDetection() {
+            fetch('/start_detection')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('videoFeed').src = '/video_feed?t=' + new Date().getTime();
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    
+                    updateInterval = setInterval(updateStats, 1000);
+                    
+                    const status = document.getElementById('statusDisplay');
+                    status.className = 'status active';
+                    status.textContent = 'System Active - Monitoring Entries';
+                });
+        }
+
+        function stopDetection() {
+            fetch('/stop_detection')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('videoFeed').src = '';
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                    
+                    clearInterval(updateInterval);
+                    
+                    const status = document.getElementById('statusDisplay');
+                    status.className = 'status inactive';
+                    status.textContent = 'System Inactive';
+                });
+        }
+
+        function updateStats() {
+            fetch('/get_stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalEntries').textContent = data.total_entries;
+                    document.getElementById('maskEntries').textContent = data.mask_entries;
+                    document.getElementById('noMaskEntries').textContent = data.no_mask_entries;
+                    
+                    const status = document.getElementById('statusDisplay');
+                    if (status.classList.contains('active')) {
+                        status.textContent = data.current_status;
+                    }
+                    
+                    updateEntriesList(data.recent_entries);
+                    
+                    // Show alert for no-mask entries
+                    if (data.no_mask_entries > 0) {
+                        const now = Date.now();
+                        if (data.recent_entries.length > 0 && 
+                            data.recent_entries[0].status === 'NOT_DETECTED' &&
+                            now - lastNoMaskTime > 3000) {
+                            showAlert();
+                            lastNoMaskTime = now;
+                        }
+                    }
+                });
+        }
+
+        function updateEntriesList(entries) {
+            const list = document.getElementById('entriesList');
+            
+            if (entries.length === 0) {
+                list.innerHTML = '<div class="no-entries">No entries recorded yet</div>';
+                return;
+            }
+            
+            list.innerHTML = entries.map(entry => `
+                <div class="entry-item ${entry.status === 'DETECTED' ? 'mask' : 'no-mask'}">
+                    <div class="entry-header">
+                        <span class="entry-id">Person #${entry.id}</span>
+                        <span class="entry-time">🕐 ${entry.time}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="entry-status ${entry.status === 'DETECTED' ? 'detected' : 'not-detected'}">
+                            ${entry.status === 'DETECTED' ? '✅ Mask Detected' : '❌ No Mask'}
+                        </span>
+                        <span style="font-weight: bold; color: #333;">
+                            ${entry.confidence}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAlert() {
+            const alert = document.getElementById('alertBanner');
+            alert.classList.add('show');
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        function resetStats() {
+            if (confirm('Are you sure you want to reset all statistics? Entry logs will be preserved.')) {
+                fetch('/reset_stats')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateStats();
+                        alert('Statistics reset successfully!');
+                    });
+            }
+        }
+
+        function downloadLog() {
+            window.location.href = '/download_log';
+        }
+
+        // Auto-update stats every second when active
+        setInterval(() => {
+            if (!document.getElementById('startBtn').disabled) {
+                // System is running
+                updateStats();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

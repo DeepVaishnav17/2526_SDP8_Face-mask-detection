@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Gate Entry System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .top-actions {
+            max-width: 1800px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .video-section, .info-section, .persons-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #videoFeed {
+            width: 100%;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-register {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .entries-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .entry-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 5px solid;
+            background: #f8f9fa;
+        }
+
+        .entry-item.mask {
+            border-left-color: #38ef7d;
+            background: linear-gradient(135deg, #f5fff5 0%, #e8f5e9 100%);
+        }
+
+        .entry-item.no-mask {
+            border-left-color: #f45c43;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .entry-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .entry-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .entry-details {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .persons-section {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+
+        .persons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .person-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .person-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .person-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .person-id {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .person-details {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .status-active {
+            display: inline-block;
+            background: #38ef7d;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏢 Organization Gate Entry System</h1>
+        <p>Face Recognition + Mask Detection + Attendance Tracking</p>
+    </div>
+
+    <div class="top-actions">
+        <a href="/register" class="btn btn-register">
+            👤 Register New Person
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="video-section">
+            <h2>📹 Live Monitoring</h2>
+            <div class="video-container">
+                <img id="videoFeed" src="" alt="Camera Feed">
+            </div>
+            <div class="controls">
+                <button class="btn btn-start" id="startBtn" onclick="startDetection()">
+                    ▶️ Start Monitoring
+                </button>
+                <button class="btn btn-stop" id="stopBtn" onclick="stopDetection()" disabled>
+                    ⏹️ Stop Monitoring
+                </button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>📊 Today's Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Registered</div>
+                    <div class="stat-value" id="totalPersons">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Today's Entries</div>
+                    <div class="stat-value" id="todayEntries">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">✅ Compliant</div>
+                    <div class="stat-value" id="maskCompliant" style="color: #38ef7d;">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">❌ Violations</div>
+                    <div class="stat-value" id="violations" style="color: #f45c43;">0</div>
+                </div>
+            </div>
+
+            <h2>📋 Recent Entries</h2>
+            <div class="entries-list" id="entriesList">
+                <div class="no-data">No entries today</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="persons-section">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('registered')">
+                👥 Registered Persons
+            </button>
+            <button class="tab" onclick="showTab('compliance')">
+                📊 Compliance Report
+            </button>
+        </div>
+
+        <div id="registeredTab" class="tab-content active">
+            <div class="persons-grid" id="personsGrid">
+                <div class="no-data">No persons registered yet</div>
+            </div>
+        </div>
+
+        <div id="complianceTab" class="tab-content">
+            <div id="complianceReport">
+                <div class="no-data">No compliance data available</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let updateInterval;
+
+        function startDetection() {
+            fetch('/start_detection')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('videoFeed').src = '/video_feed?t=' + new Date().getTime();
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    
+                    updateInterval = setInterval(updateStats, 1000);
+                });
+        }
+
+        function stopDetection() {
+            fetch('/stop_detection')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('videoFeed').src = '';
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                    
+                    clearInterval(updateInterval);
+                });
+        }
+
+        function updateStats() {
+            fetch('/get_stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalPersons').textContent = data.total_persons;
+                    document.getElementById('todayEntries').textContent = data.today_entries;
+                    document.getElementById('maskCompliant').textContent = data.mask_compliant;
+                    document.getElementById('violations').textContent = data.non_compliant;
+                    
+                    updateEntriesList(data.recent_entries);
+                });
+        }
+
+        function updateEntriesList(entries) {
+            const list = document.getElementById('entriesList');
+            
+            if (entries.length === 0) {
+                list.innerHTML = '<div class="no-data">No entries today</div>';
+                return;
+            }
+            
+            list.innerHTML = entries.map(entry => `
+                <div class="entry-item ${entry.mask_status === 'DETECTED' ? 'mask' : 'no-mask'}">
+                    <div class="entry-header">
+                        <span class="entry-name">${entry.name}</span>
+                        <span class="entry-time">🕐 ${entry.time}</span>
+                    </div>
+                    <div class="entry-details">
+                        ID: ${entry.employee_id} | Dept: ${entry.department || 'N/A'}<br>
+                        Mask: ${entry.mask_status === 'DETECTED' ? '✅ Detected' : '❌ Not Detected'} (${entry.confidence})
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadPersons() {
+            fetch('/get_all_persons')
+                .then(response => response.json())
+                .then(persons => {
+                    const grid = document.getElementById('personsGrid');
+                    
+                    if (persons.length === 0) {
+                        grid.innerHTML = '<div class="no-data">No persons registered yet. Click "Register New Person" to add someone.</div>';
+                        return;
+                    }
+                    
+                    grid.innerHTML = persons.map(person => `
+                        <div class="person-card">
+                            <div class="person-name">${person.name}</div>
+                            <div class="person-id">ID: ${person.employee_id}</div>
+                            <div class="person-details">
+                                ${person.department || 'No Department'}<br>
+                                ${person.role || 'No Role'}<br>
+                                ${person.phone || ''}<br>
+                                <small>Registered: ${person.registration_date.split(' ')[0]}</small>
+                            </div>
+                            <span class="status-active">Active</span>
+                        </div>
+                    `).join('');
+                });
+        }
+
+        function loadComplianceReport() {
+            fetch('/get_compliance_report')
+                .then(response => response.json())
+                .then(report => {
+                    const div = document.getElementById('complianceReport');
+                    
+                    if (report.length === 0) {
+                        div.innerHTML = '<div class="no-data">No compliance data for today</div>';
+                        return;
+                    }
+                    
+                    div.innerHTML = `
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #667eea; color: white;">
+                                    <th style="padding: 12px; text-align: left;">Name</th>
+                                    <th style="padding: 12px; text-align: left;">Employee ID</th>
+                                    <th style="padding: 12px; text-align: left;">Department</th>
+                                    <th style="padding: 12px; text-align: center;">Total Entries</th>
+                                    <th style="padding: 12px; text-align: center;">Compliant</th>
+                                    <th style="padding: 12px; text-align: center;">Violations</th>
+                                    <th style="padding: 12px; text-align: center;">Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${report.map((r, i) => `
+                                    <tr style="background: ${i % 2 === 0 ? '#f8f9fa' : 'white'};">
+                                        <td style="padding: 10px;">${r.name}</td>
+                                        <td style="padding: 10px;">${r.employee_id}</td>
+                                        <td style="padding: 10px;">${r.department || 'N/A'}</td>
+                                        <td style="padding: 10px; text-align: center;">${r.total_entries}</td>
+                                        <td style="padding: 10px; text-align: center; color: #38ef7d; font-weight: bold;">${r.compliant}</td>
+                                        <td style="padding: 10px; text-align: center; color: #f45c43; font-weight: bold;">${r.violations}</td>
+                                        <td style="padding: 10px; text-align: center; font-weight: bold;">${r.compliance_rate}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                });
+        }
+
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            if (tabName === 'registered') {
+                document.getElementById('registeredTab').classList.add('active');
+                loadPersons();
+            } else if (tabName === 'compliance') {
+                document.getElementById('complianceTab').classList.add('active');
+                loadComplianceReport();
+            }
+        }
+
+        // Auto-update
+        setInterval(() => {
+            if (!document.getElementById('startBtn').disabled) {
+                updateStats();
+            }
+            loadPersons();
+        }, 3000);
+
+        // Initial load
+        updateStats();
+        loadPersons();
+    </script>
+</body>
+</html>

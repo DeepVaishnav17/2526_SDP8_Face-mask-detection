@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Person - Organization System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .required {
+            color: red;
+        }
+
+        .photo-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+
+        .photo-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto 20px;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #video {
+            width: 100%;
+            display: block;
+        }
+
+        .captured-photos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .photo-thumbnail {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 3px solid #667eea;
+        }
+
+        .photo-thumbnail img {
+            width: 100%;
+            display: block;
+        }
+
+        .photo-thumbnail .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #f45c43;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: transform 0.3s;
+        }
+
+        .back-link:hover {
+            transform: translateX(-5px);
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back to Dashboard</a>
+    
+    <div class="container">
+        <h1>👤 Register New Person</h1>
+        <p class="subtitle">Add employee or visitor to the system</p>
+
+        <div class="instructions">
+            <strong>📋 Instructions:</strong>
+            <ul>
+                <li>Fill in all required information</li>
+                <li>Capture 3-5 clear photos of the person's face</li>
+                <li>Ensure good lighting and front-facing position</li>
+                <li>Photos will be used for face recognition at gate entry</li>
+            </ul>
+        </div>
+
+        <div id="alertBox"></div>
+
+        <form id="registrationForm">
+            <div class="form-group">
+                <label>Full Name <span class="required">*</span></label>
+                <input type="text" id="name" required placeholder="e.g., John Doe">
+            </div>
+
+            <div class="form-group">
+                <label>Employee/Visitor ID <span class="required">*</span></label>
+                <input type="text" id="employeeId" required placeholder="e.g., EMP001">
+            </div>
+
+            <div class="form-group">
+                <label>Department</label>
+                <input type="text" id="department" placeholder="e.g., Engineering">
+            </div>
+
+            <div class="form-group">
+                <label>Role/Designation</label>
+                <input type="text" id="role" placeholder="e.g., Software Engineer">
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="phone" placeholder="e.g., +1234567890">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="e.g., john@company.com">
+            </div>
+
+            <div class="photo-section">
+                <h3>📸 Capture Face Photos</h3>
+                <div class="alert alert-info">
+                    Capture 3-5 photos from slightly different angles for better recognition accuracy
+                </div>
+
+                <div class="camera-container">
+                    <video id="video" autoplay></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-primary" id="startCameraBtn" onclick="startCamera()">
+                        📹 Start Camera
+                    </button>
+                    <button type="button" class="btn btn-success" id="captureBtn" onclick="capturePhoto()" disabled>
+                        📷 Capture Photo
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="stopCameraBtn" onclick="stopCamera()" disabled>
+                        ⏹️ Stop Camera
+                    </button>
+                </div>
+
+                <div class="captured-photos" id="photoGallery"></div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-success" id="submitBtn">
+                    ✅ Register Person
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let capturedPhotos = [];
+        let stream = null;
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                video.srcObject = stream;
+                
+                document.getElementById('startCameraBtn').disabled = true;
+                document.getElementById('captureBtn').disabled = false;
+                document.getElementById('stopCameraBtn').disabled = false;
+                
+                showAlert('Camera started! Position your face in the frame and click Capture Photo', 'info');
+            } catch (err) {
+                showAlert('Error accessing camera: ' + err.message, 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                stream = null;
+                
+                document.getElementById('startCameraBtn').disabled = false;
+                document.getElementById('captureBtn').disabled = true;
+                document.getElementById('stopCameraBtn').disabled = true;
+            }
+        }
+
+        function capturePhoto() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            const photoData = canvas.toDataURL('image/jpeg');
+            capturedPhotos.push(photoData);
+            
+            displayPhotos();
+            showAlert(`Photo ${capturedPhotos.length} captured! ${5 - capturedPhotos.length > 0 ? 'Capture ' + (5 - capturedPhotos.length) + ' more for best results' : 'Good to go!'}`, 'success');
+        }
+
+        function displayPhotos() {
+            const gallery = document.getElementById('photoGallery');
+            gallery.innerHTML = '';
+            
+            capturedPhotos.forEach((photo, index) => {
+                const div = document.createElement('div');
+                div.className = 'photo-thumbnail';
+                div.innerHTML = `
+                    <img src="${photo}" alt="Photo ${index + 1}">
+                    <button class="remove-btn" onclick="removePhoto(${index})">×</button>
+                `;
+                gallery.appendChild(div);
+            });
+        }
+
+        function removePhoto(index) {
+            capturedPhotos.splice(index, 1);
+            displayPhotos();
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 5000);
+        }
+
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (capturedPhotos.length < 3) {
+                showAlert('Please capture at least 3 photos for better recognition accuracy', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Registering...';
+            
+            const data = {
+                name: document.getElementById('name').value,
+                employee_id: document.getElementById('employeeId').value,
+                department: document.getElementById('department').value,
+                role: document.getElementById('role').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                photos: capturedPhotos
+            };
+            
+            try {
+                const response = await fetch('/register_person', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('✅ ' + result.message + ' Redirecting to dashboard...', 'success');
+                    stopCamera();
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showAlert('❌ ' + result.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '✅ Register Person';
+                }
+            } catch (err) {
+                showAlert('Error: ' + err.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✅ Register Person';
+            }
+        });
+
+        // Cleanup camera on page unload
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
+    </script>
+</body>
+</html>
