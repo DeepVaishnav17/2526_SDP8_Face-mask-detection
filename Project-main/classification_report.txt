@@ -1,0 +1,10 @@
+MASK DETECTION MODEL - CLASSIFICATION REPORT
+============================================================
+              precision    recall  f1-score   support
+
+    WithMask     0.9969    0.9680    0.9822      1000
+ WithoutMask     0.9689    0.9970    0.9828      1000
+
+    accuracy                         0.9825      2000
+   macro avg     0.9829    0.9825    0.9825      2000
+weighted avg     0.9829    0.9825    0.9825      2000
