@@ -1,53 +1,123 @@
-# LAB1: Face Mask Detection - Algorithm Overview
+# 🛡️ FaceGuard v2 — Face Mask Detection System
 
-# Category 1: Two-Stage Detectors (The "Beginner Friendly" Way)
-This is the method I recommended in the plan. It is not "direct" in one single math step, but it is easier to build and debug.
+## What It Does
 
-Step 1: Find the Face.
+| Camera sees                | Result                                                |
+| -------------------------- | ----------------------------------------------------- |
+| Person with mask           | Shows "MASK ON" — no identity check, NOT logged       |
+| Registered person, no mask | Shows their name — logs photo + timestamp to Word doc |
+| Unknown person, no mask    | Shows "UNKNOWN"                                       |
+| No face                    | Shows "No face detected"                              |
 
-Step 2: Check that specific face for a Mask.
+---
 
-# Algorithms: 
-# Haar Cascades
-    Role in project - Face Detection
-    Description - Haar Cascades is a machine learning based approach where a cascade function is trained from a lot of positive and negative images. It is then used to detect objects in other images. It is very fast and works well for face detection.
-    Libraries - OpenCV
+## Requirements
 
-# MobileNetV2 + SSD
-    Role in project - Checks for mask
-    Description - It is a "lightweight" Deep Learning model designed specifically for mobile phones and laptops. It is fast and accurate enough (99%) for this task.
-    Libraries - TensorFlow, Keras
+- Python 3.9+
+- Node.js 18+
+- pip, npm
 
-# VGG16/ResNet50
-    Role in project - Checks for mask
-    Description - These are "heavy" models. They are slightly more accurate than MobileNet but run much slower. Avoid these if you want real-time video on a laptop.
-    Libraries - TensorFlow, Keras
+**No CMake, no dlib, no C++ compiler needed.**
 
-# Category 2: Single-Stage Detectors (The "Direct" Way)
-These algorithms look at the image once and immediately draw boxes around "Masked Faces" and "Unmasked Faces" at the same time. They are more advanced and "cooler," but harder to set up for beginners.
+---
 
-# 1. YOLO (You Only Look Once)
-    What it is: The most famous object detection algorithm in the world.
+## Install & Run
 
-    Versions: YOLOv5 or YOLOv8 (specifically the "Nano" or "Small" versions) are best for laptops.
+### Windows
 
-    Pros: Extremely fast. It detects the face and the mask in a single millisecond.
+```
+Double-click start.bat
+```
 
-    Cons: It requires a different data format (YOLO format: .txt files with coordinates) which can be annoying to prepare. If you get an installation error, it is harder to fix than standard TensorFlow.
+### Mac / Linux
 
-# 2. SSD (Single Shot MultiBox Detector)
-    What it is: A competitor to YOLO. Usually paired with MobileNet (called SSD-MobileNet).
+```bash
+chmod +x start.sh && ./start.sh
+```
 
-    Pros: faster than YOLO on older hardware (like Raspberry Pi or old laptops).
+### Manual
 
-    Cons: Slightly less accurate than YOLO.
+```bash
+# Terminal 1 — Backend
+cd backend
+pip install -r requirements.txt
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
+# Terminal 2 — Frontend
+cd frontend
+npm install
+npm start
+```
 
-# Visual Comparison
-Option A (Two-Stage - Recommended)
+Then open: **http://localhost:3000** in Chrome
 
-[Camera Input] -> [Haar Cascade] finds face at (x,y) -> [Cut out Face] -> [MobileNetV2] says "99% Mask" -> [Draw Green Box]
+---
 
-Option B (One-Stage - YOLO)
+## First Run Note
 
-[Camera Input] -> [YOLOv8] -> "I see a 'Masked-Face' at (x,y)" -> [Draw Green Box]
+DeepFace downloads the **Facenet512** model (~250MB) and MediaPipe downloads face mesh model (~10MB) on first use. After that, they load from cache instantly.
+
+---
+
+## How to Use
+
+### 1. Register a person
+
+- Go to **Register** tab
+- Type their name
+- Look into camera → click Capture Photo
+- Click Register Person
+
+### 2. Run detection
+
+- Go to **Detection** tab
+- Click **Start Detection**
+- Camera sends a frame every 2 seconds automatically
+
+### 3. View logs
+
+- Go to **Logs** tab
+- See all identified entries
+- Click **Download Word Doc** to get `entry_log.docx`
+
+---
+
+## Tech Stack
+
+| Layer            | Tech                  | Why                                             |
+| ---------------- | --------------------- | ----------------------------------------------- |
+| Face recognition | DeepFace + Facenet512 | No dlib/cmake, very accurate, persists via JSON |
+| Mask detection   | MediaPipe FaceMesh    | 468 landmarks, runs offline, no CNN needed      |
+| Backend          | FastAPI               | Fast, async, clean                              |
+| Frontend         | React + react-webcam  | Webcam capture, live detection                  |
+| Word log         | python-docx           | Photo + name + timestamp per entry              |
+
+---
+
+## Troubleshooting
+
+**"No face detected" when registering?**
+
+- Face the camera directly
+- Ensure good lighting (not dark, no strong backlight)
+- Keep your face within the green guide box
+- Do NOT wear a mask while registering
+
+**First run slow?**
+
+- Normal — models are downloading (~260MB total, once)
+- Wait for backend terminal to show "Application startup complete"
+
+**Port 8000 already in use?**
+
+```bash
+# Kill it
+# Windows: netstat -ano | findstr :8000  then  taskkill /PID <pid> /F
+# Mac/Linux: lsof -ti:8000 | xargs kill
+```
+
+**Camera not working?**
+
+- Use Chrome or Edge (best webcam support)
+- Allow camera permissions when prompted
+- Make sure no other app is using the camera
