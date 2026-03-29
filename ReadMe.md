@@ -1,4 +1,4 @@
-# 🛡️ FaceGuard v2 — Face Mask Detection System
+# 🛡️ FaceGuard — Face Mask Detection System
 
 ## What It Does
 
