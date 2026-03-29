@@ -437,15 +437,40 @@ import winsound
 import threading
 import os
 import collections
+import requests
+import time
 from datetime import datetime
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
+try:
+    import face_recognition
+    FACE_REC_AVAILABLE = True
+except ImportError:
+    FACE_REC_AVAILABLE = False
+    print("[WARNING] 'face_recognition' library not found. Face recognition disabled.")
+
+import pickle
+
 # --- 1. SETUP & CONFIGURATION ---
+API_URL = "http://localhost:5000"
+LAST_SENT_TIME = 0
+SEND_INTERVAL = 2.0  # Seconds between DB updates to avoid spam
+
 AUDIT_DIR = "accuracy_audit"
 os.makedirs(f"{AUDIT_DIR}/mask", exist_ok=True)
 os.makedirs(f"{AUDIT_DIR}/no_mask", exist_ok=True)
+
+# Load Face Encodings
+data = {"encodings": [], "names": []}
+try:
+    with open("encodings.pickle", "rb") as f:
+        data = pickle.loads(f.read())
+    print(f"[INFO] Loaded {len(data['encodings'])} face encodings.")
+except:
+    print("[WARNING] No face encodings found. Face recognition will be disabled.")
+
 
 # Performance Tuning for Production
 STABILITY_WINDOW = 10     # Consensus required over the last 10 frames
@@ -533,25 +558,56 @@ while True:
             (startX, startY, endX, endY) = box
             (mask, noMask) = pred
 
+            # --- FACE RECOGNITION (Optimized) ---
+            name = "Unknown"
+            if FACE_REC_AVAILABLE and len(data["encodings"]) > 0:
+                # Convert face coordinates for face_recognition [top, right, bottom, left]
+                # We already have the crops, but let's re-encode from the full frame for accuracy
+                rgb_small = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
+                # Pass the specific box we already found to avoid re-detection
+                # face_recognition expects (top, right, bottom, left)
+                face_box = [(startY, endX, endY, startX)]
+                
+                encodings = face_recognition.face_encodings(rgb_small, face_box)
+                
+                if len(encodings) > 0:
+                    encoding = encodings[0]
+                    matches = face_recognition.compare_faces(data["encodings"], encoding)
+                    
+                    if True in matches:
+                        matchedIdxs = [i for (i, b) in enumerate(matches) if b]
+                        counts = {}
+                        for i in matchedIdxs:
+                            name = data["names"][i]
+                            counts[name] = counts.get(name, 0) + 1
+                        name = max(counts, key=counts.get)
+
             # 1. Centroid Tracking to maintain identity
             matched_id = None
-            for fid, data in face_tracks.items():
-                dist = np.linalg.norm(np.array(centroid) - np.array(data['centroid']))
+            for fid, data_track in face_tracks.items(): # Renamed 'data' to 'data_track' to avoid conflict
+                dist = np.linalg.norm(np.array(centroid) - np.array(data_track['centroid']))
                 if dist < 65: 
                     matched_id = fid
                     break
             
             if matched_id is None:
                 matched_id = next_id
-                face_tracks[matched_id] = {'centroid': centroid, 'seen_count': 1}
+                face_tracks[matched_id] = {'centroid': centroid, 'seen_count': 1, 'name': name}
                 next_id += 1
             else:
                 face_tracks[matched_id]['centroid'] = centroid
                 face_tracks[matched_id]['seen_count'] += 1
+                # Update name if we found a known one (and previous was Unknown)
+                if name != "Unknown":
+                    face_tracks[matched_id]['name'] = name
             
             current_frame_ids.append(matched_id)
             face_queues[matched_id].append(mask)
             
+            # Use the tracked name
+            display_name = face_tracks[matched_id].get('name', 'Unknown')
+
             # 2. THE JURY SYSTEM: Only display labels for stable detections
             if face_tracks[matched_id]['seen_count'] >= MIN_SEEN_FRAMES:
                 # Average the last 10 frames for this specific person
@@ -568,8 +624,35 @@ while True:
                     cv2.imwrite(f"{AUDIT_DIR}/{folder}/{fname}", frame[startY:endY, startX:endX])
 
                 cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
-                cv2.putText(frame, f"ID {matched_id}: {label} ({smoothed_prob*100:.0f}%)", (startX, startY-10), 
+                cv2.putText(frame, f"{display_name}: {label} ({smoothed_prob*100:.0f}%)", (startX, startY-10), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
+
+                # --- NEW: History Tracking ---
+                # Check directly in the loop (simple approach)
+                current_time = time.time()
+                if current_time - LAST_SENT_TIME > SEND_INTERVAL:
+                    try:
+                        # Only record if we actually know the user? Or record "Unknown" too?
+                        # Let's record if name is known, OR if we fall back to API global user
+                        
+                        target_user = display_name
+                        if target_user == "Unknown":
+                             # Fallback to manual endpoint
+                            r = requests.get(f"{API_URL}/get_user", timeout=0.1)
+                            if r.status_code == 200:
+                                manual_user = r.json().get("current_user")
+                                if manual_user:
+                                    target_user = manual_user
+                        
+                        if target_user != "Unknown":
+                            # 2. Send Record
+                            requests.post(f"{API_URL}/record_status", json={
+                                "name": target_user,
+                                "status": label
+                            }, timeout=0.1)
+                            LAST_SENT_TIME = current_time
+                    except Exception as e:
+                        pass # Fail silently to not crash video loop
 
         # Cleanup lost tracks
         face_tracks = {fid: d for fid, d in face_tracks.items() if fid in current_frame_ids}
